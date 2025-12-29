@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: { { .Release.Namespace } }
+data:
+  fluent.conf: |-
+    <match fluent.**>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**fluentd**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kibana**.log>
+      @type null
+    </match>
+
+    <source>
+      @type tail
+      path /var/log/containers/*.log
+      pos_file fluentd-docker.pos
+      time_format %Y-%m-%dT%H:%M:%S
+      tag kubernetes.*
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+          time_key time
+          time_type string
+          time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+          keep_time_key false
+        </pattern>
+        <pattern>
+          format regexp
+          expression /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
+          time_format '%Y-%m-%dT%H:%M:%S.%N%:z'
+          keep_time_key false
+        </pattern>
+      </parse>
+    </source>
+
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+      @id filter_kube_metadata
+    </filter>
+
+    <filter kubernetes.**>
+      @type grep
+      <exclude>
+        key $.kubernetes.container_name
+        pattern /^(?:{{ include "fluentd.excludePattern" . }})$/
+      </exclude>
+    </filter>
+
+    # ... (rest of the config) ...
+
+    <filter kubernetes.var.log.containers.**>
+      @type parser
+      <parse>
+        @type json
+        format json
+        time_key time
+        time_type string
+        time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+        keep_time_key false
+      </parse>
+      key_name log
+      replace_invalid_sequence true
+      emit_invalid_record_to_error true
+      reserve_data true
+    </filter>
+
+    <match **>
+      @type elasticsearch
+      @id out_es
+      @log_level info
+      include_tag_key true
+      host {{ .Values.fluentd.elasticsearch.host | quote }}
+      port {{ .Values.fluentd.elasticsearch.port | quote }}
+      path {{ .Values.fluentd.elasticsearch.path | quote }}
+      scheme {{ .Values.fluentd.elasticsearch.scheme | quote }}
+      ssl_verify {{ .Values.fluentd.elasticsearch.ssl_verify | quote }}
+      ssl_version {{ .Values.fluentd.elasticsearch.ssl_version | quote }}
+      user {{ .Values.fluentd.elasticsearch.user }}
+      password {{ .Values.fluentd.elasticsearch.password }}
+      reload_connections {{ .Values.fluentd.elasticsearch.reload_connections | quote }}
+      reconnect_on_error {{ .Values.fluentd.elasticsearch.reconnect_on_error | quote }}
+      reload_on_failure {{ .Values.fluentd.elasticsearch.reload_on_failure | quote }}
+      log_es_400_reason {{ .Values.fluentd.elasticsearch.log_es_400_reason | quote }}
+      logstash_prefix {{ .Values.fluentd.elasticsearch.logstash_prefix | quote }}
+      logstash_dateformat {{ .Values.fluentd.elasticsearch.logstash_dateformat | quote }}
+      logstash_format {{ .Values.fluentd.elasticsearch.logstash_format | quote }}
+      index_name {{ .Values.fluentd.elasticsearch.index_name | quote }}
+      type_name {{ .Values.fluentd.elasticsearch.type_name | quote }}
+      include_timestamp {{ .Values.fluentd.elasticsearch.include_timestamp | quote }}
+      template_name {{ .Values.fluentd.elasticsearch.template_name }}
+      template_file {{ .Values.fluentd.elasticsearch.template_file }}
+      template_overwrite {{ .Values.fluentd.elasticsearch.template_overwrite }}
+      sniffer_class_name {{ .Values.fluentd.elasticsearch.sniffer_class_name | quote }}
+      request_timeout {{ .Values.fluentd.elasticsearch.request_timeout | quote }}
+      <buffer>
+        flush_thread_count {{ .Values.fluentd.elasticsearch.buffer.flush_thread_count | quote }}
+        flush_interval {{ .Values.fluentd.elasticsearch.buffer.flush_interval | quote }}
+        chunk_limit_size {{ .Values.fluentd.elasticsearch.buffer.chunk_limit_size | quote }}
+        queue_limit_length {{ .Values.fluentd.elasticsearch.buffer.queue_limit_length | quote }}
+        retry_max_interval {{ .Values.fluentd.elasticsearch.buffer.retry_max_interval | quote }}
+        retry_forever {{ .Values.fluentd.elasticsearch.buffer.retry_forever }}
+      </buffer>
+    </match>

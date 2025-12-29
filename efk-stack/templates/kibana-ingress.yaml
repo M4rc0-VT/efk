@@ -1,0 +1,35 @@
+# templates/kibana-ingress.yaml
+{{- if .Values.kibana.ingress.enabled -}}
+apiVersion: networking.kib.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "efk-stack.fullname" . }}-kibana
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "efk-stack.labels" . | nindent 4 }}
+  # Annotations are templated as a block, allowing for full customization
+  annotations:
+    {{- toYaml .Values.kibana.ingress.annotations | nindent 4 }}
+spec:
+  # The ingress class is configurable
+  ingressClassName: {{ .Values.kibana.ingress.className }}
+  {{- if .Values.kibana.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.kibana.ingress.host | quote }}
+      secretName: {{ .Values.kibana.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.kibana.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                # This points to the service we defined above
+                name: {{ include "efk-stack.fullname" . }}-kibana
+                port:
+                  # This uses the port defined in the service
+                  number: {{ .Values.kibana.service.port }}
+{{- end }}

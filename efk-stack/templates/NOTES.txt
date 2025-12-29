@@ -1,0 +1,19 @@
+{{- /* templates/NOTES.txt */}}
+Your EFK Stack has been deployed.
+
+1. **Kibana Access:**
+{{- if .Values.kibana.ingress.enabled }}
+  You can access the Kibana UI at the following URL:
+  {{- $protocol := .Values.kibana.ingress.tls.enabled | ternary "https" "http" }}
+  {{ $protocol }}://{{ .Values.kibana.ingress.host }}
+{{- else }}
+  Kibana Ingress is disabled. To access it, you can set up port-forwarding:
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "efk-stack.fullname" . }}-kibana 5601:5601
+
+  Then open http://localhost:5601 in your browser.
+{{- end }}
+
+2. **Elasticsearch Cluster:**
+   The Elasticsearch cluster is available internally at:
+   {{ include "efk-stack.fullname" . }}-es-cluster-0.elasticsearch:9200

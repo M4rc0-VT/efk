@@ -1,0 +1,207 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: efk
+  uid: f9f3266b-881c-44ce-b18f-7ede97fa8874
+  resourceVersion: '1126685'
+  creationTimestamp: '2024-04-30T13:50:40Z'
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"v1","data":{"fluent.conf":"\u003cmatch fluent.**\u003e\n 
+      @type null\n\u003c/match\u003e\n\n\u003cmatch
+      kubernetes.var.log.containers.**fluentd**.log\u003e\n  @type
+      null\n\u003c/match\u003e\n\n\u003cmatch
+      kubernetes.var.log.containers.**kube-system**.log\u003e\n  @type
+      null\n\u003c/match\u003e\n\n\u003cmatch
+      kubernetes.var.log.containers.**kibana**.log\u003e\n  @type
+      null\n\u003c/match\u003e\n\n\u003csource\u003e\n  @type tail\n  path
+      /var/log/containers/*.log\n  pos_file fluentd-docker.pos\n  time_format
+      %Y-%m-%dT%H:%M:%S\n  tag kubernetes.*\n  \u003cparse\u003e\n    @type
+      multi_format\n    \u003cpattern\u003e\n      format json\n      time_key
+      time\n      time_type string\n      time_format
+      \"%Y-%m-%dT%H:%M:%S.%NZ\"\n      keep_time_key false\n   
+      \u003c/pattern\u003e\n    \u003cpattern\u003e\n      format regexp\n     
+      expression /^(?\u003ctime\u003e.+) (?\u003cstream\u003estdout|stderr)(
+      (?\u003clogtag\u003e.))? (?\u003clog\u003e.*)$/\n      time_format
+      '%Y-%m-%dT%H:%M:%S.%N%:z'\n      keep_time_key false\n   
+      \u003c/pattern\u003e\n 
+      \u003c/parse\u003e\n\u003c/source\u003e\n\n\u003cfilter
+      kubernetes.**\u003e\n  @type kubernetes_metadata\n  @id
+      filter_kube_metadata\n\u003c/filter\u003e\n\n\u003cfilter
+      kubernetes.**\u003e\n  @type grep\n  \u003cexclude\u003e\n    key
+      $.kubernetes.container_name\n    pattern
+      /^(?:kafka|nginx-ingress-microk8s|controller|elasticsearch)$/         \n 
+      \u003c/exclude\u003e\n\u003c/filter\u003e\n\n\u003cfilter
+      kubernetes.var.log.containers.**\u003e\n  @type parser\n 
+      \u003cparse\u003e\n    @type json\n    format json\n    time_key time\n   
+      time_type string\n    time_format \"%Y-%m-%dT%H:%M:%S.%NZ\"\n   
+      keep_time_key false\n  \u003c/parse\u003e\n  key_name log\n 
+      replace_invalid_sequence true\n  emit_invalid_record_to_error true\n 
+      reserve_data true\n\u003c/filter\u003e\n\n\u003cmatch **\u003e\n  @type
+      elasticsearch\n  @id out_es\n  @log_level info\n  include_tag_key true\n 
+      host \"#{ENV['FLUENT_ELASTICSEARCH_HOST']}\"\n  port
+      \"#{ENV['FLUENT_ELASTICSEARCH_PORT']}\"\n  path
+      \"#{ENV['FLUENT_ELASTICSEARCH_PATH']}\"\n  scheme
+      \"#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}\"\n  ssl_verify
+      \"#{ENV['FLUENT_ELASTICSEARCH_SSL_VERIFY'] || 'true'}\"\n  ssl_version
+      \"#{ENV['FLUENT_ELASTICSEARCH_SSL_VERSION'] || 'TLSv1_2'}\"\n  user
+      \"#{ENV['FLUENT_ELASTICSEARCH_USER'] || use_default}\"\n  password
+      \"#{ENV['FLUENT_ELASTICSEARCH_PASSWORD'] || use_default}\"\n 
+      reload_connections \"#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] ||
+      'false'}\"\n  reconnect_on_error
+      \"#{ENV['FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR'] || 'true'}\"\n 
+      reload_on_failure \"#{ENV['FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE'] ||
+      'true'}\"\n  log_es_400_reason
+      \"#{ENV['FLUENT_ELASTICSEARCH_LOG_ES_400_REASON'] || 'false'}\"\n 
+      logstash_prefix \"#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX'] ||
+      'dapr'}\"\n  logstash_dateformat
+      \"#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_DATEFORMAT'] || '%Y.%m.%d'}\"\n 
+      logstash_format \"#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_FORMAT'] ||
+      'true'}\"\n  index_name
+      \"#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_INDEX_NAME'] || 'dapr'}\"\n 
+      type_name \"#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_TYPE_NAME'] ||
+      'fluentd'}\"\n  include_timestamp
+      \"#{ENV['FLUENT_ELASTICSEARCH_INCLUDE_TIMESTAMP'] || 'false'}\"\n 
+      template_name \"#{ENV['FLUENT_ELASTICSEARCH_TEMPLATE_NAME'] ||
+      use_nil}\"\n  template_file \"#{ENV['FLUENT_ELASTICSEARCH_TEMPLATE_FILE']
+      || use_nil}\"\n  template_overwrite
+      \"#{ENV['FLUENT_ELASTICSEARCH_TEMPLATE_OVERWRITE'] || use_default}\"\n 
+      sniffer_class_name \"#{ENV['FLUENT_SNIFFER_CLASS_NAME'] ||
+      'Fluent::Plugin::ElasticsearchSimpleSniffer'}\"\n  request_timeout
+      \"#{ENV['FLUENT_ELASTICSEARCH_REQUEST_TIMEOUT'] || '5s'}\"\n 
+      \u003cbuffer\u003e\n    flush_thread_count
+      \"#{ENV['FLUENT_ELASTICSEARCH_BUFFER_FLUSH_THREAD_COUNT'] || '8'}\"\n   
+      flush_interval \"#{ENV['FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL'] ||
+      '5s'}\"\n    chunk_limit_size
+      \"#{ENV['FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE'] || '2M'}\"\n   
+      queue_limit_length
+      \"#{ENV['FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH'] || '32'}\"\n   
+      retry_max_interval
+      \"#{ENV['FLUENT_ELASTICSEARCH_BUFFER_RETRY_MAX_INTERVAL'] || '30'}\"\n   
+      retry_forever true\n 
+      \u003c/buffer\u003e\n\u003c/match\u003e"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"fluentd-config","namespace":"efk"}}
+  managedFields:
+    - manager: kubectl-client-side-apply
+      operation: Update
+      apiVersion: v1
+      time: '2024-04-30T13:50:40Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:data:
+          .: {}
+          f:fluent.conf: {}
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:kubectl.kubernetes.io/last-applied-configuration: {}
+  selfLink: /api/v1/namespaces/efk/configmaps/fluentd-config
+data:
+  fluent.conf: |-
+    <match fluent.**>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**fluentd**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kibana**.log>
+      @type null
+    </match>
+
+    <source>
+      @type tail
+      path /var/log/containers/*.log
+      pos_file fluentd-docker.pos
+      time_format %Y-%m-%dT%H:%M:%S
+      tag kubernetes.*
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+          time_key time
+          time_type string
+          time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+          keep_time_key false
+        </pattern>
+        <pattern>
+          format regexp
+          expression /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
+          time_format '%Y-%m-%dT%H:%M:%S.%N%:z'
+          keep_time_key false
+        </pattern>
+      </parse>
+    </source>
+
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+      @id filter_kube_metadata
+    </filter>
+
+    <filter kubernetes.**>
+      @type grep
+      <exclude>
+        key $.kubernetes.container_name
+        pattern /^(?:kafka|nginx-ingress-microk8s|controller|elasticsearch)$/         
+      </exclude>
+    </filter>
+
+    <filter kubernetes.var.log.containers.**>
+      @type parser
+      <parse>
+        @type json
+        format json
+        time_key time
+        time_type string
+        time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+        keep_time_key false
+      </parse>
+      key_name log
+      replace_invalid_sequence true
+      emit_invalid_record_to_error true
+      reserve_data true
+    </filter>
+
+    <match **>
+      @type elasticsearch
+      @id out_es
+      @log_level info
+      include_tag_key true
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST']}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT']}"
+      path "#{ENV['FLUENT_ELASTICSEARCH_PATH']}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      ssl_verify "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERIFY'] || 'true'}"
+      ssl_version "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERSION'] || 'TLSv1_2'}"
+      user "#{ENV['FLUENT_ELASTICSEARCH_USER'] || use_default}"
+      password "#{ENV['FLUENT_ELASTICSEARCH_PASSWORD'] || use_default}"
+      reload_connections "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] || 'false'}"
+      reconnect_on_error "#{ENV['FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR'] || 'true'}"
+      reload_on_failure "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE'] || 'true'}"
+      log_es_400_reason "#{ENV['FLUENT_ELASTICSEARCH_LOG_ES_400_REASON'] || 'false'}"
+      logstash_prefix "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX'] || 'dapr'}"
+      logstash_dateformat "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_DATEFORMAT'] || '%Y.%m.%d'}"
+      logstash_format "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_FORMAT'] || 'true'}"
+      index_name "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_INDEX_NAME'] || 'dapr'}"
+      type_name "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_TYPE_NAME'] || 'fluentd'}"
+      include_timestamp "#{ENV['FLUENT_ELASTICSEARCH_INCLUDE_TIMESTAMP'] || 'false'}"
+      template_name "#{ENV['FLUENT_ELASTICSEARCH_TEMPLATE_NAME'] || use_nil}"
+      template_file "#{ENV['FLUENT_ELASTICSEARCH_TEMPLATE_FILE'] || use_nil}"
+      template_overwrite "#{ENV['FLUENT_ELASTICSEARCH_TEMPLATE_OVERWRITE'] || use_default}"
+      sniffer_class_name "#{ENV['FLUENT_SNIFFER_CLASS_NAME'] || 'Fluent::Plugin::ElasticsearchSimpleSniffer'}"
+      request_timeout "#{ENV['FLUENT_ELASTICSEARCH_REQUEST_TIMEOUT'] || '5s'}"
+      <buffer>
+        flush_thread_count "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_FLUSH_THREAD_COUNT'] || '8'}"
+        flush_interval "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL'] || '5s'}"
+        chunk_limit_size "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE'] || '2M'}"
+        queue_limit_length "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH'] || '32'}"
+        retry_max_interval "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_RETRY_MAX_INTERVAL'] || '30'}"
+        retry_forever true
+      </buffer>
+    </match>
+binaryData: {}

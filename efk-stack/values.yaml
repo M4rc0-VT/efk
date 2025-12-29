@@ -1,0 +1,105 @@
+# values.yaml
+
+fluentd:
+  image:
+    repository: fluent/fluentd-kubernetes-daemonset
+    tag: "v1.15.3-debian-elasticsearch7-1.1"
+    pullPolicy: IfNotPresent
+  systemdConf: "disable"
+  tolerations:
+    - key: node-role.kubernetes.io/master
+      effect: NoSchedule
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  excludeContainers:
+    - kafka
+    - nginx-ingress-microk8s
+    - controller
+    - elasticsearch
+    - kibana
+
+  elasticsearch:
+    host: "elasticsearch.default.svc.cluster.local"
+    port: 9200
+    scheme: "http"
+    user: "elastic"
+    existingSecret: "elasticsearch-credentials"
+
+    ssl_verify: "true"
+    ssl_version: "TLSv1_2"
+    logstash_prefix: "dapr"
+    logstash_dateformat: "%Y.%m.%d"
+    logstash_format: "true"
+    index_name: "dapr"
+    type_name: "fluentd"
+    template_name: "use_nil"
+    template_file: "use_nil"
+    template_overwrite: "use_default"
+    reload_connections: "false"
+    reconnect_on_error: "true"
+    reload_on_failure: "true"
+    log_es_400_reason: "false"
+    include_timestamp: "false"
+    sniffer_class_name: "Fluent::Plugin::ElasticsearchSimpleSniffer"
+    request_timeout: "5s"
+    buffer:
+      flush_thread_count: "8"
+      flush_interval: "5s"
+      chunk_limit_size: "2M"
+      queue_limit_length: "32"
+      retry_max_interval: "30"
+      retry_forever: "true"
+
+elasticsearch:
+  replicaCount: 3
+  clusterName: "k8s-logs"
+  image:
+    repository: "docker.elastic.co/elasticsearch/elasticsearch"
+    tag: "7.17.18"
+    pullPolicy: IfNotPresent
+  javaOpts: "-Xms512m -Xmx512m"
+  initContainers:
+    enabled: true
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "1Gi"
+  storage:
+    size: "10Gi"
+    storageClassName: ""
+
+kibana:
+  replicaCount: 1
+  image:
+    repository: "docker.elastic.co/kibana/kibana"
+    tag: "7.17.18"
+    pullPolicy: IfNotPresent
+  elasticsearchURL: "http://elasticsearch:9200"
+  service:
+    port: 5601
+  ingress:
+    enabled: true
+    className: "nginx"
+    host: "kibana.example.com"
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "1G"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    tls:
+      enabled: false
+      secretName: "kibana-tls-secret"
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "512Mi"

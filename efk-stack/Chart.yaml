@@ -1,0 +1,27 @@
+apiVersion: v2
+name: efk-stack
+description: A complete, deployable EFK (Elasticsearch, Fluentd, and Kibana) logging stack for Kubernetes.
+
+# A chart can be either an 'application' or a 'library' chart.
+type: application
+
+# This is the version of this Helm chart itself.
+# Increment this every time you change the chart's templates or default values.
+# Start at 1.0.0 for the first stable version.
+version: 1.0.0
+
+# This is the version of the applications being deployed by the chart.
+# Since this chart deploys a stack, it's good practice to list the component versions.
+appVersion: "E:7.17.18, F:v1.15.3, K:7.17.18"
+
+# You can also add other useful metadata
+keywords:
+  - logging
+  - efk
+  - elasticsearch
+  - fluentd
+  - kibana
+home: https://github.com/your-repo/efk-stack # (Optional) Link to the chart's source code
+maintainers:
+  - name: Your Name
+    email: your.email@example.com

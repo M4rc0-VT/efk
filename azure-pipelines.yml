@@ -1,0 +1,48 @@
+trigger:
+  - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  # Link to a variable group. You can change this to deploy for different customers.
+  - group: vg-generic
+
+steps:
+  - task: HelmInstaller@1
+    inputs:
+      helmVersionToInstall: "latest"
+
+  - script: |
+      # Create a Kubernetes secret for the Elasticsearch password
+      # The password is now available as an environment variable in the pipeline
+      kubectl create secret generic elasticsearch-credentials \
+        --from-literal=password='$(elasticsearch.password)' \
+        --namespace efk -o yaml --dry-run=client | kubectl apply -f -
+    displayName: "Create Elasticsearch Secret"
+    # This step needs a service connection to your Kubernetes cluster configured
+
+  - task: HelmDeploy@0
+    inputs:
+      connectionType: "Kubernetes Service Connection" # Your service connection name
+      kubernetesServiceConnection: "k8s-service-connection-customer-a"
+      namespace: "efk"
+      command: "upgrade"
+      chartType: "FilePath"
+      chartPath: "efk-stack" # Path to your Helm chart in the repo
+      releaseName: "efk-stack"
+      install: true # This makes the command `helm upgrade --install`
+      # Override values from our variable group
+      overrideValues: |
+        fluentd.logstash_prefix=$(fluentd.logstashPrefix)
+        fluentd.excludeContainers={$(fluentd.excludeContainers)}
+        elasticsearch.host=$(elasticsearch.host)
+        elasticsearch.replicaCount=$(elasticsearch.replicaCount)
+        elasticsearch.storage.size=$(elasticsearch.storage.size)
+        elasticsearch.javaOpts=$(elasticsearch.javaOpts)
+        elasticsearch.resources.requests.memory=$(elasticsearch.resources.requests.memory)
+        elasticsearch.resources.limits.memory=$(elasticsearch.resources.limits.memory)
+        kibana.ingress.enabled=$(kibana.ingress.enabled)
+        kibana.ingress.host=$(kibana.ingress.host)
+        kibana.ingress.tls=$(kibana.ingress.tls)
+        kibana.ingress.tlsSecret=$(kibana.ingress.tlsSecret)

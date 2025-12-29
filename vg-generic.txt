@@ -1,0 +1,13 @@
+elasticsearch.host: es.customer-a.internal
+fluentd.logstashPrefix: customer-a-logs
+fluentd.excludeContainers: "kafka,rabbitmq,jaeger" (a comma-separated string)
+elasticsearch.password: some-passwordVariables:
+elasticsearch.replicaCount: 3
+elasticsearch.storage.size: 100Gi
+elasticsearch.javaOpts: "-Xms2g -Xmx2g"
+elasticsearch.resources.requests.memory: "4Gi"
+elasticsearch.resources.limits.memory: "4Gi"
+kibana.ingress.enabled: true
+kibana.ingress.host: logs.customer-a.com
+kibana.ingress.tls: true
+kibana.ingress.tlsSecret: customer-a-tls-secret

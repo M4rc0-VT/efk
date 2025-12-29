@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Use the fullname helper for a consistent and unique name
+  name: {{ include "efk-stack.fullname" . }}-kibana
+  namespace: {{ .Release.Namespace }}
+  # Use the labels helper to apply a standard set of labels to the resource
+  labels:
+    {{- include "efk-stack.labels" . | nindent 4 }}
+spec:
+  # The number of Kibana pods is now configurable
+  replicas: {{ .Values.kibana.replicaCount }}
+  selector:
+    # This selector must match the labels on the pod template below
+    matchLabels:
+      {{- include "efk-stack.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: kibana
+  template:
+    metadata:
+      labels:
+        # These labels are applied to the pods and must match the selector above
+        {{- include "efk-stack.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: kibana
+    spec:
+      containers:
+        - name: kibana
+          image: "{{ .Values.kibana.image.repository }}:{{ .Values.kibana.image.tag }}"
+          imagePullPolicy: {{ .Values.kibana.image.pullPolicy }}
+          env:
+            - name: ELASTICSEARCH_URL
+              # The connection URL to Elasticsearch is now configurable
+              value: {{ .Values.kibana.elasticsearchURL | quote }}
+          ports:
+            - name: http
+              containerPort: 5601
+              protocol: TCP
+          # Resource requests/limits are now configurable via values.yaml
+          resources:
+            {{- toYaml .Values.kibana.resources | nindent 12 }}

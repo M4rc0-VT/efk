@@ -1,0 +1,22 @@
+# templates/kibana-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  # Use the fullname helper for a consistent and unique name
+  name: {{ include "efk-stack.fullname" . }}-kibana
+  namespace: {{ .Release.Namespace }}
+  # Use the labels helper to apply a standard set of labels
+  labels:
+    {{- include "efk-stack.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.kibana.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  # This selector is critical. It must match the labels on the pods
+  # created by the kibana-deployment.yaml template.
+  selector:
+    {{- include "efk-stack.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: kibana
