@@ -477,7 +477,7 @@ This file defines a **Kubernetes Ingress** object named `kibana-ingress`. An Ing
 
 - **`ingressClassName: nginx`**: This tells the cluster that an NGINX Ingress Controller is responsible for fulfilling this Ingress rule.
 - **`rules`**: This section defines how traffic is routed.
-  - **`host: kibana.us-staging.sms-group.com`**: This is the public URL for Kibana. The Ingress controller will only apply this rule to traffic that arrives with this hostname.
+  - **`host: my-web-site.com`**: This is the public URL for Kibana. The Ingress controller will only apply this rule to traffic that arrives with this hostname.
   - **`backend`**: It specifies that traffic matching the host should be forwarded to the `kibana` service on port `5601`.
 - **`annotations`**: These are specific instructions for the NGINX Ingress Controller, tuning its behavior. For example, `nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'` forces all HTTP traffic to be redirected to HTTPS, which is a good security practice.
 
@@ -489,7 +489,7 @@ This file defines a **Kubernetes Ingress** object named `kibana-ingress`. An Ing
 
 This setup is functional for a single, specific environment, but it shares the same rigidity as the other components.
 
-1.  **Hardcoded Hostname:** The Ingress is hardcoded to `kibana.us-staging.sms-group.com`. This is the most obvious problem. This URL is completely specific to one customer and environment, making the file non-reusable.
+1.  **Hardcoded Hostname:** The Ingress is hardcoded to `my-web-site.com`. This is the most obvious problem. This URL is completely specific to one customer and environment, making the file non-reusable.
 2.  **No TLS Configuration:** While the Ingress forces a redirect to SSL, it doesn't actually define _how_ to handle TLS (i.e., where to get the certificate from). This is often handled by another annotation that references a Kubernetes Secret containing the TLS certificate and key. Without it, users would get a certificate error.
 3.  **Static Configuration:** The Elasticsearch URL, replica count (stuck at 1), and resource limits are all hardcoded. A different customer might need a more resilient, multi-replica Kibana deployment with more memory, or they might have an external Elasticsearch cluster with a different URL.
 4.  **Inconsistent Selectors:** A minor but important point: the Kibana Service in `kibanaService.yml` uses `selector: {name: kibana}`, but the Kibana Deployment in `kibanaDeployment.yml` labels its pods with `app: kibana`. This is a mistake. The service selector must match the pod labels. Your provided YAML shows a corrected selector (`app: kibana`), but the original `last-applied-configuration` annotation shows the error. This kind of inconsistency is easy to introduce with static files and can be tricky to debug.
