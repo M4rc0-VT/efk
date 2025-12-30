@@ -21,7 +21,7 @@ keywords:
   - elasticsearch
   - fluentd
   - kibana
-home: https://github.com/your-repo/efk-stack # (Optional) Link to the chart's source code
+home: https://github.com/M4rc0-VT/efk/efk-stack
 maintainers:
-  - name: Your Name
-    email: your.email@example.com
+  - name: Marco Carmo
+    email: marco.mtfc@gmail.com

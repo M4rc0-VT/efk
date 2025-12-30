@@ -1,0 +1,63 @@
+name: Deploy EFK Stack
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'efk-stack/**' # Only run if changes happen in the chart folder
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+env:
+  AKS_RESOURCE_GROUP: "rg-terraform-lab"
+  AKS_CLUSTER_NAME: "aks-terraform-lab"
+  NAMESPACE: "logging"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Login to Azure (The Digital Handshake)
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 3. Get AKS Credentials
+      - name: Get AKS Credentials
+        run: az aks get-credentials --resource-group ${{ env.AKS_RESOURCE_GROUP }} --name ${{ env.AKS_CLUSTER_NAME }}
+
+      # 4. Create the Namespace & Secret (Pre-requisites)
+      - name: Create Secrets & Namespace
+        run: |
+          # Create namespace if it doesn't exist
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Create the password secret (Elasticsearch expects this)
+          # We use a dummy password 'ChangeMe123!' for the lab, or you can use a GitHub Secret
+          kubectl create secret generic elasticsearch-credentials \
+            --namespace ${{ env.NAMESPACE }} \
+            --from-literal=password=ChangeMe123! \
+            --from-literal=username=elastic \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # 5. Deploy with Helm
+      - name: Deploy to AKS
+        run: |
+          cd efk-stack
+          helm upgrade --install efk-stack . \
+            --namespace ${{ env.NAMESPACE }} \
+            --set elasticsearch.replicaCount=1 \
+            --set elasticsearch.storage.storageClassName=managed-csi \
+            --set elasticsearch.resources.requests.memory=1Gi \
+            --set elasticsearch.resources.limits.memory=2Gi \
+            --set kibana.ingress.enabled=false \
+            --set kibana.elasticsearchURL=http://elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local:9200 \
+            --set fluentd.elasticsearch.host=elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local
