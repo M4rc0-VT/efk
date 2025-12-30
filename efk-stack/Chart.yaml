@@ -9,10 +9,7 @@ type: application
 # Increment this every time you change the chart's templates or default values.
 # Start at 1.0.0 for the first stable version.
 version: 1.0.0
-
-# This is the version of the applications being deployed by the chart.
-# Since this chart deploys a stack, it's good practice to list the component versions.
-appVersion: "E:7.17.18, F:v1.15.3, K:7.17.18"
+appVersion: "1.0.0"
 
 # You can also add other useful metadata
 keywords:
