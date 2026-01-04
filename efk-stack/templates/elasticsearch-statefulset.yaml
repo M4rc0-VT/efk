@@ -26,7 +26,6 @@ spec:
       # It replaces the need for a privileged 'fix-permissions' init container.
       securityContext:
         fsGroup: 1000
-        runAsUser: 1000
       
       # These init containers are still useful but can be disabled in values.yaml
       # if your Kubernetes nodes are already configured with these settings.
@@ -45,7 +44,6 @@ spec:
           command: ["sh", "-c", "ulimit -n 65536"]
           securityContext:
             privileged: true
-            runAsUser: 0
       {{- end }}
       containers:
         - name: elasticsearch
@@ -76,6 +74,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /usr/share/elasticsearch/data
+          securityContext:
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
   volumeClaimTemplates:
     - metadata:
         name: data
