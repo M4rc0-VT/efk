@@ -28,8 +28,15 @@ spec:
           imagePullPolicy: {{ .Values.kibana.image.pullPolicy }}
           env:
             - name: ELASTICSEARCH_URL
-              # The connection URL to Elasticsearch is now configurable
               value: {{ .Values.kibana.elasticsearchURL | quote }}
+            - name: ELASTICSEARCH_REQUESTTIMEOUT
+              value: "90000"
+            - name: XPACK_SECURITY_ENCRYPTIONKEY
+              value: "something_at_least_32_characters_long_123"
+            - name: XPACK_REPORTING_ENCRYPTIONKEY
+              value: "something_at_least_32_characters_long_123"
+            - name: XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY
+              value: "something_at_least_32_characters_long_123"
           ports:
             - name: http
               containerPort: 5601
