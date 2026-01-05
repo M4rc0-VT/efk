@@ -10,6 +10,7 @@ on:
 env:
   AKS_RESOURCE_GROUP: "rg-terraform-lab"
   AKS_CLUSTER_NAME: "aks-terraform-lab"
+  ELASTICSEARCH_CONTAINER_PORT: "9200"
   NAMESPACE: "logging"
 
 permissions:
@@ -59,5 +60,5 @@ jobs:
             --set elasticsearch.resources.requests.memory=1Gi \
             --set elasticsearch.resources.limits.memory=2Gi \
             --set kibana.ingress.enabled=false \
-            --set kibana.elasticsearchURL=http://elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local:9200 \
+            --set kibana.elasticsearchURL=http://elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local:${{ ELASTICSEARCH_CONTAINER_PORT }} \
             --set fluentd.elasticsearch.host=elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local

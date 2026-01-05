@@ -65,7 +65,7 @@ spec:
               value: {{ .Values.elasticsearch.javaOpts | quote }}
           ports:
             - name: rest
-              containerPort: 9200
+              containerPort: {{ .Values.elasticsearch.containerPort | 9200 }}
             - name: inter-node
               containerPort: 9300
           resources:
