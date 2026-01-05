@@ -11,8 +11,8 @@ spec:
   clusterIP: None
   ports:
     - name: rest
-      port: {{ .Values.elasticsearch.containerPort | 9200 }}
-      targetPort: {{ .Values.elasticsearch.containerPort | 9200 }}
+      port: {{ .Values.elasticsearch.containerPort }}
+      targetPort: {{ .Values.elasticsearch.containerPort }}
     - name: inter-node
       port: 9300
       targetPort: 9300
