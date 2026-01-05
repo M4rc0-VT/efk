@@ -57,6 +57,7 @@ fluentd:
 elasticsearch:
   replicaCount: 3
   clusterName: "k8s-logs"
+  containerPort: 9200
   image:
     repository: "docker.elastic.co/elasticsearch/elasticsearch"
     tag: "7.17.18"

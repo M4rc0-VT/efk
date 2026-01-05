@@ -55,10 +55,11 @@ jobs:
           cd efk-stack
           helm upgrade --install efk-stack . \
             --namespace ${{ env.NAMESPACE }} \
+            --set elasticsearch.containerPort=${{ env.ELASTICSEARCH_CONTAINER_PORT }} \
             --set elasticsearch.replicaCount=1 \
             --set elasticsearch.storage.storageClassName=managed-csi \
             --set elasticsearch.resources.requests.memory=1Gi \
             --set elasticsearch.resources.limits.memory=2Gi \
             --set kibana.ingress.enabled=false \
-            --set kibana.elasticsearchURL=http://elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local:${{ ELASTICSEARCH_CONTAINER_PORT }} \
+            --set kibana.elasticsearchURL=http://elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local:${{ env.ELASTICSEARCH_CONTAINER_PORT }} \
             --set fluentd.elasticsearch.host=elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local
