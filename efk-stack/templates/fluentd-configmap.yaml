@@ -83,10 +83,11 @@ data:
       @id out_es
       @log_level info
       include_tag_key true
+
       host {{ .Values.fluentd.elasticsearch.host | quote }}
       port {{ .Values.fluentd.elasticsearch.port | quote }}
-      path {{ .Values.fluentd.elasticsearch.path | quote }}
       scheme {{ .Values.fluentd.elasticsearch.scheme | quote }}
+
       ssl_verify {{ .Values.fluentd.elasticsearch.ssl_verify | quote }}
       ssl_version {{ .Values.fluentd.elasticsearch.ssl_version | quote }}
       user {{ .Values.fluentd.elasticsearch.user }}
@@ -107,6 +108,12 @@ data:
       sniffer_class_name {{ .Values.fluentd.elasticsearch.sniffer_class_name | quote }}
       request_timeout {{ .Values.fluentd.elasticsearch.request_timeout | quote }}
       <buffer>
+        @type file
+        path /var/log/fluentd-buffers/kubernetes.system.buffer
+        flush_mode interval
+        retry_type exponential_backoff
+        overflow_action block
+
         flush_thread_count {{ .Values.fluentd.elasticsearch.buffer.flush_thread_count | quote }}
         flush_interval {{ .Values.fluentd.elasticsearch.buffer.flush_interval | quote }}
         chunk_limit_size {{ .Values.fluentd.elasticsearch.buffer.chunk_limit_size | quote }}

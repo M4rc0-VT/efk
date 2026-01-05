@@ -55,6 +55,8 @@ jobs:
           cd efk-stack
           helm upgrade --install efk-stack . \
             --namespace ${{ env.NAMESPACE }} \
+            --set fluentd.elasticsearch.host=http://elasticsearch.${{ env.NAMESPACE }}.svc.cluster.local:${{ env.ELASTICSEARCH_CONTAINER_PORT }} \
+            --set fluentd.elasticsearch.port=${{ env.ELASTICSEARCH_CONTAINER_PORT }} \
             --set elasticsearch.containerPort=${{ env.ELASTICSEARCH_CONTAINER_PORT }} \
             --set elasticsearch.replicaCount=1 \
             --set elasticsearch.storage.storageClassName=managed-csi \
